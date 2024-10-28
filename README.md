@@ -115,9 +115,4 @@ Para contribuir com o projeto ou sugerir melhorias, faça um *fork* e envie uma 
 
 ---
 
-## Licença
-
-Este projeto está sob a licença MIT. Para mais detalhes, consulte o arquivo [LICENSE](LICENSE).
-```
-
 Este `README.md` fornece uma documentação completa das ações do WebSocket para o bot de integração com o servidor Minecraft, com exemplos claros de como utilizá-las.
