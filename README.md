@@ -1,4 +1,4 @@
-# TokenWebSocket Documentation
+# Discord-Integration Documentation
 
 Este documento descreve as ações e o formato de comunicação via WebSocket entre o servidor Minecraft e o bot Discord usando o `TokenWebSocket`. O `TokenWebSocket` permite a sincronização de informações entre o jogador no Minecraft e o bot no Discord, como vinculação de tokens, sincronização de cargos e obtenção de informações de jogadores.
 
