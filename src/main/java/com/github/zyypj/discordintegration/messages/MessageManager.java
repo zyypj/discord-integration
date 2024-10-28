@@ -52,6 +52,4 @@ public class MessageManager {
     public String getMessage(String path) {
         return getMessage(path, null);
     }
-
-    //
 }

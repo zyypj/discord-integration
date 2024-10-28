@@ -168,6 +168,4 @@ public class TokenWebSocket extends WebSocketServer {
     public void onStart() {
         plugin.getLogger().log(Level.INFO, "Servidor WebSocket iniciado com sucesso.");
     }
-
-    //
 }

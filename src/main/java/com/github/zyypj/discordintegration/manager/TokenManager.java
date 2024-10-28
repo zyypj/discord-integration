@@ -27,6 +27,4 @@ public class TokenManager {
     public Map<String, String> validateToken(String token) {
         return tokens.remove(token); // Remove o token após validação para impedir reuso
     }
-
-    //
 }

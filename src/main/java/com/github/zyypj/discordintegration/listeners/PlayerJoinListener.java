@@ -18,6 +18,4 @@ public class PlayerJoinListener implements Listener {
         // Atualiza o nickname no WebSocket quando o jogador entra no servidor
         plugin.getTokenWebSocket().updatePlayerNickname(event.getPlayer().getUniqueId(), event.getPlayer().getName());
     }
-
-    //
 }

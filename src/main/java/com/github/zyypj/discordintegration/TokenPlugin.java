@@ -145,6 +145,4 @@ public class TokenPlugin extends JavaPlugin {
     private void log(String message) {
         getLogger().info(message.replace("&", "§"));
     }
-
-    //
 }

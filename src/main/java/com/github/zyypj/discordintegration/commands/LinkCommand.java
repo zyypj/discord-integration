@@ -56,9 +56,9 @@ public class LinkCommand implements CommandExecutor {
 
         // Define os valores para os placeholders
         Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("USER_NAME", discordName);
-        placeholders.put("USER_NICK", discordNick);
-        placeholders.put("PLAYER_NICK", player.getName());
+        placeholders.put("{USER_NAME}", discordName);
+        placeholders.put("{USER_NICK}", discordNick);
+        placeholders.put("{PLAYER_NICK}", player.getName());
 
         // Token válido: envia a confirmação de vinculação para o bot com UUID e Nickname
         JsonObject response = new JsonObject();
