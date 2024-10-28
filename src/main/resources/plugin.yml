@@ -1,0 +1,7 @@
+name: discord-integration
+author: tadeu
+version: '${project.version}'
+main: com.github.zyypj.discordintegration.TokenPlugin
+command:
+  vincular:
+    aliases: [token]
