@@ -4,6 +4,10 @@ import com.github.zyypj.discordintegration.TokenPlugin;
 import com.github.zyypj.discordintegration.manager.TokenManager;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.luckperms.api.model.group.Group;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.query.QueryOptions;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -11,16 +15,18 @@ import org.java_websocket.server.WebSocketServer;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class TokenWebSocket extends WebSocketServer {
 
     private final TokenManager tokenManager;
     private final TokenPlugin plugin;
-    private final Map<UUID, String> playerNicknameCache = new ConcurrentHashMap<>(); // Cache persistente de nicknames
+    private final Map<UUID, String> playerNicknameCache = new ConcurrentHashMap<>();
 
     public TokenWebSocket(TokenPlugin plugin, String websocketUrl) {
         super(parseWebSocketURI(websocketUrl));
@@ -52,12 +58,23 @@ public class TokenWebSocket extends WebSocketServer {
         JsonObject json = new JsonParser().parse(message).getAsJsonObject();
         String action = json.get("action").getAsString();
 
-        if ("registerToken".equals(action)) {
-            handleRegisterToken(json);
-        } else if ("syncRoles".equals(action)) {
-            handleSyncRoles(json, webSocket);
-        } else if ("getPlayerInfo".equals(action)) {
-            handleGetPlayerInfo(json, webSocket);
+        switch (action) {
+            case "registerToken":
+                handleRegisterToken(json);
+                break;
+            case "syncRoles":
+                handleSyncRoles(json, webSocket);
+                break;
+            case "getPlayerInfo":
+                handleGetPlayerInfo(json, webSocket);
+                break;
+            default:
+                JsonObject response = new JsonObject();
+                response.addProperty("registerToken", "Registra um token");
+                response.addProperty("syncRoles", "Recarrega os ID dos cargos");
+                response.addProperty("getPlayerInfo", "Retorna informações do jogador");
+
+                webSocket.send(response.toString());
         }
     }
 
@@ -100,7 +117,35 @@ public class TokenWebSocket extends WebSocketServer {
     }
 
     public void sendPlayerRoles(Player player, WebSocket webSocket) {
-        // Implementação do envio de cargos omitida para brevidade
+        // Obtém o usuário do LuckPerms
+        User user = plugin.getLuckPerms().getUserManager().getUser(player.getUniqueId());
+
+        // Cria o objeto de resposta JSON
+        JsonObject response = new JsonObject();
+        response.addProperty("action", "playerRoles");
+        response.addProperty("uuid", player.getUniqueId().toString());
+
+        // Carrega a configuração de cargos (roles.yml)
+        FileConfiguration rolesConfig = plugin.getRolesConfig();
+        JsonObject rolesJson = new JsonObject();
+
+        // Obtém os grupos do jogador do LuckPerms e mapeia para os IDs dos cargos do Discord
+        if (user != null) {
+            List<String> playerGroups = user.getInheritedGroups((QueryOptions) plugin.getLuckPerms().getContextManager().getStaticContext()).stream()
+                    .map(Group::getName)
+                    .collect(Collectors.toList());
+
+            for (String group : playerGroups) {
+                if (rolesConfig.contains(group)) {
+                    String roleId = rolesConfig.getString(group + ".id", "default");
+                    rolesJson.addProperty(group, roleId);
+                }
+            }
+        }
+
+        // Adiciona os cargos ao JSON de resposta e envia ao WebSocket
+        response.add("roles", rolesJson);
+        webSocket.send(response.toString());
     }
 
     /**
