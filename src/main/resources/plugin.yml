@@ -1,6 +1,7 @@
 name: discord-integration
 author: tadeu
 version: '${project.version}'
+depends: [ LuckPerms ]
 main: com.github.zyypj.discordintegration.TokenPlugin
 command:
   vincular:
