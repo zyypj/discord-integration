@@ -1,6 +1,7 @@
 package com.github.zyypj.discordintegration;
 
 import com.github.zyypj.discordintegration.commands.LinkCommand;
+import com.github.zyypj.discordintegration.listeners.ChatListener;
 import com.github.zyypj.discordintegration.listeners.PlayerJoinListener;
 import com.github.zyypj.discordintegration.manager.TokenManager;
 import com.github.zyypj.discordintegration.messages.MessageManager;
@@ -102,6 +103,7 @@ public class TokenPlugin extends JavaPlugin {
         log("&eRegistrando listeners...");
 
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new ChatListener(this), this);
 
         long endTime = System.currentTimeMillis() - startTime;
         log("&aListeners registrados em " + endTime + "ms!");

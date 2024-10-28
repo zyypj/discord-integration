@@ -148,6 +148,22 @@ public class TokenWebSocket extends WebSocketServer {
         webSocket.send(response.toString());
     }
 
+    // Método para enviar mensagens de chat pelo WebSocket
+    public void sendChatMessage(Player player, String skin, String message, String world, String server) {
+        JsonObject chatMessage = new JsonObject();
+        chatMessage.addProperty("action", "chatMessage");
+        chatMessage.addProperty("skin", skin);
+        chatMessage.addProperty("player", player.getDisplayName());
+        chatMessage.addProperty("message", message);
+        chatMessage.addProperty("world", world);
+        chatMessage.addProperty("server", server);
+
+        // Envia a mensagem para todos os clientes WebSocket conectados
+        for (WebSocket conn : getConnections()) {
+            conn.send(chatMessage.toString());
+        }
+    }
+
     /**
      * Atualiza e armazena o nickname do jogador no cache.
      *
