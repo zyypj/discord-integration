@@ -1,0 +1,8 @@
+name: discord-integration
+author: tadeu
+version: '0.5'
+depends: [ LuckPerms ]
+main: com.github.zyypj.discordintegration.TokenPlugin
+command:
+  vincular:
+    aliases: [token]

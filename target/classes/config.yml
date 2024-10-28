@@ -1,0 +1,8 @@
+#
+# Esse plugin foi feito para integrações.
+# Feito por tadeu (@zypj) em parceria com Lipe (@lipe_tato)
+# Para mais, chame o tadeu na dm.
+#
+
+websocket:
+  url: "ws://localhost:8080"

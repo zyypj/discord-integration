@@ -1,0 +1,6 @@
+# Mensagens personalizadas
+
+messages:
+  token_command_incorrect_usage: "&cUse: /vincular <token>"
+  token_invalid: "&cToken inválido ou não encontrado! Verifique a mensagem enviada pelo bot no discord."
+  account_linked: "&aConta vinculada com sucesso!"
