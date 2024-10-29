@@ -1,0 +1,9 @@
+name: discord-integration
+author: tadeu
+version: '0.6'
+depends: [ LuckPerms ]
+main: com.github.zyypj.discordintegration.TokenPlugin
+api-version: 1.8
+commands:
+  vincular:
+    description: Comando para vincular o Discord ao Minecraft.
