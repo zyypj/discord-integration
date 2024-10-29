@@ -29,12 +29,12 @@ public class LinkCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage("Este comando só pode ser usado por jogadores.");
-            return true;
+            return false;
         }
 
         if (args.length != 1) {
             sender.sendMessage(messageManager.getMessage("token_command_incorrect_usage"));
-            return true;
+            return false;
         }
 
         Player player = (Player) sender;
@@ -45,7 +45,7 @@ public class LinkCommand implements CommandExecutor {
 
         if (discordData == null) {
             player.sendMessage(messageManager.getMessage("token_invalid"));
-            return true;
+            return false;
         }
         //
 

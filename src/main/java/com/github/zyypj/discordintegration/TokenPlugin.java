@@ -47,7 +47,8 @@ public class TokenPlugin extends JavaPlugin {
         loadRolesConfig();
 
         long endTime = System.currentTimeMillis() - startTime;
-        getLogger().info("&aIntegração concluida em " + endTime + "ms!");
+        log(" ");
+        log("&aIntegração concluida em " + endTime + "ms!");
     }
 
     // Carrega os gerenciadores (token and messages)

@@ -4,9 +4,12 @@ import com.github.zyypj.discordintegration.TokenPlugin;
 import com.github.zyypj.discordintegration.manager.TokenManager;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import lombok.Getter;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.query.QueryOptions;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.java_websocket.WebSocket;
@@ -22,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+@Getter
 public class TokenWebSocket extends WebSocketServer {
 
     private final TokenManager tokenManager;
@@ -103,19 +107,6 @@ public class TokenWebSocket extends WebSocketServer {
         }
     }
 
-    private void handleGetPlayerInfo(JsonObject json, WebSocket webSocket) {
-        String uuidString = json.get("uuid").getAsString();
-        UUID uuid = UUID.fromString(uuidString);
-        String nickname = playerNicknameCache.get(uuid);
-
-        JsonObject response = new JsonObject();
-        response.addProperty("action", "playerInfo");
-        response.addProperty("uuid", uuid.toString());
-        response.addProperty("nickname", nickname != null ? nickname : "Desconhecido");
-
-        webSocket.send(response.toString());
-    }
-
     public void sendPlayerRoles(Player player, WebSocket webSocket) {
         // Obtém o usuário do LuckPerms
         User user = plugin.getLuckPerms().getUserManager().getUser(player.getUniqueId());
@@ -146,6 +137,63 @@ public class TokenWebSocket extends WebSocketServer {
         // Adiciona os cargos ao JSON de resposta e envia ao WebSocket
         response.add("roles", rolesJson);
         webSocket.send(response.toString());
+    }
+
+    private void handleGetPlayerInfo(JsonObject json, WebSocket webSocket) {
+        String uuidString = json.get("uuid").getAsString();
+        UUID uuid = UUID.fromString(uuidString);
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+        boolean isOnline = offlinePlayer.isOnline();
+        Player player = isOnline ? Bukkit.getPlayer(uuid) : null;
+
+        JsonObject playerInfo = new JsonObject();
+
+        // Nickname
+        playerInfo.addProperty("nickname", offlinePlayer.getName());
+
+        // UUID
+        playerInfo.addProperty("uuid", offlinePlayer.getUniqueId().toString());
+
+        // Primeira vez que entrou no servidor
+        long firstJoinTime = offlinePlayer.getFirstPlayed();
+        String firstJoinDate = firstJoinTime > 0 ? new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new java.util.Date(firstJoinTime)) : "Desconhecido";
+        playerInfo.addProperty("firstJoinDate", firstJoinDate);
+
+        // Skin (exibido como nickname, pois é o identificador no Minecraft)
+        playerInfo.addProperty("skin", offlinePlayer.getName());
+
+        // Verificação de jogador premium (original ou pirata)
+        boolean isPremium = offlinePlayer.hasPlayedBefore();
+        playerInfo.addProperty("isPremium", isPremium);
+
+        // Status online
+        playerInfo.addProperty("isOnline", isOnline);
+
+        // Adiciona informações extras se o jogador estiver online
+        if (isOnline && player != null) {
+            playerInfo.addProperty("world", player.getWorld().getName());
+            playerInfo.addProperty("server", Bukkit.getServer().getName());
+        }
+
+        // Envia as informações do jogador de volta ao WebSocket
+        JsonObject response = new JsonObject();
+        response.addProperty("action", "playerInfo");
+        response.add("playerData", playerInfo);
+
+        webSocket.send(response.toString());
+    }
+
+    public void sendDirectMessage(String discordId, String message) {
+        // Cria o objeto JSON com as informações necessárias
+        JsonObject json = new JsonObject();
+        json.addProperty("action", "sendDirectMessage");
+        json.addProperty("discordId", discordId);
+        json.addProperty("message", message);
+
+        // Envia o objeto JSON para todos os clientes WebSocket conectados
+        for (WebSocket conn : getConnections()) {
+            conn.send(json.toString());
+        }
     }
 
     // Método para enviar mensagens de chat pelo WebSocket
