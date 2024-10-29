@@ -188,4 +188,82 @@ Se você deseja contribuir com este projeto, faça um *fork* do repositório, cr
 
 ---
 
+### Exemplo de Uso com WebSocket
+
+Abaixo, um exemplo de conexão com o WebSocket usando JavaScript. Esse exemplo simula o bot Discord se conectando ao servidor Minecraft para solicitar informações do jogador e receber a resposta.
+
+#### Passo 1: Estabeleça a Conexão com o WebSocket
+
+```javascript
+// Inicializa a conexão com o WebSocket do servidor Minecraft
+const socket = new WebSocket("ws://localhost:SUA_PORTA_WEBSOCKET");
+
+// Evento quando a conexão é aberta
+socket.onopen = () => {
+  console.log("Conexão WebSocket estabelecida com sucesso.");
+
+  // Exemplo de requisição para obter informações detalhadas de um jogador
+  const getPlayerInfoRequest = {
+    action: "getPlayerInfo",
+    apiToken: "SEU_TOKEN_DE_ACESSO", // Substitua pelo seu token de acesso
+    playerName: "Tadeu"              // Nome do jogador no Minecraft
+  };
+
+  // Envia a requisição ao servidor
+  socket.send(JSON.stringify(getPlayerInfoRequest));
+};
+
+// Evento para tratar respostas do servidor
+socket.onmessage = (event) => {
+  const response = JSON.parse(event.data); // Converte a resposta JSON para objeto JavaScript
+
+  console.log("Resposta recebida do servidor:", response); // Exibe a resposta no console
+
+  // Exemplo de manipulação dos dados recebidos
+  if (response.action === "playerInfo") {
+    const playerData = response.playerData;
+    console.log(`Nickname: ${playerData.nickname}`);
+    console.log(`UUID: ${playerData.uuid}`);
+    console.log(`Saldo: ${playerData.balance}`);
+    console.log(`Habilidades - Farming Level: ${playerData.farmingLevel}`);
+  }
+};
+
+// Evento para quando a conexão é fechada
+socket.onclose = () => {
+  console.log("Conexão WebSocket encerrada.");
+};
+
+// Evento para tratar erros de conexão
+socket.onerror = (error) => {
+  console.error("Erro no WebSocket:", error);
+};
+```
+
+#### Explicação do Exemplo
+
+1. **Conexão e Requisição**: Após estabelecer a conexão, o código envia uma solicitação `getPlayerInfo` para recuperar informações detalhadas sobre o jogador `"Tadeu"` usando o `apiToken`.
+2. **Recebendo a Resposta**: O código exibe a resposta recebida no console, permitindo o uso dos dados retornados pelo servidor, como nickname, UUID e saldo do jogador.
+3. **Tratamento de Conexão e Erros**: Os eventos `onclose` e `onerror` monitoram o status da conexão e tratam possíveis problemas de conexão.
+
+#### Exemplo de Requisição para Obter o UUID pelo Nome do Jogador
+
+Para obter o UUID do jogador pelo nome, basta enviar a seguinte requisição:
+
+```javascript
+// Exemplo de requisição para obter o UUID de um jogador pelo nome
+const getPlayerUUIDRequest = {
+  action: "getPlayerUUID",
+  apiToken: "SEU_TOKEN_DE_ACESSO", // Substitua pelo seu token de acesso
+  playerName: "Tadeu"              // Nome do jogador no Minecraft
+};
+
+// Envia a requisição ao servidor
+socket.send(JSON.stringify(getPlayerUUIDRequest));
+```
+
+Esse exemplo mostra como interagir com o `TokenWebSocket`, permitindo que o bot Discord e o servidor Minecraft troquem informações e atualizem dados de forma eficiente usando o WebSocket.
+
+---
+
 Este documento fornece uma visão geral das ações WebSocket para integração entre o servidor Minecraft e o bot Discord, facilitando a comunicação e sincronização de dados entre as duas plataformas.
