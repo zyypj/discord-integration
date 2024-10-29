@@ -1,18 +1,18 @@
-# Discord-Integration Documentation
+# Discord Integration - WebSocket Documentation
 
-Este documento descreve as ações e o formato de comunicação via WebSocket entre o servidor Minecraft e o bot Discord usando o `TokenWebSocket`. O `TokenWebSocket` permite a sincronização de informações entre o jogador no Minecraft e o bot no Discord, como vinculação de tokens, sincronização de cargos e obtenção de informações de jogadores.
+Este documento descreve a comunicação via WebSocket entre o servidor Minecraft e o bot Discord, implementada no `TokenWebSocket`. Este sistema facilita a integração entre as contas de jogadores no Minecraft e seus perfis no Discord, permitindo a sincronização de cargos, envio de mensagens diretas e atualização de informações de jogadores.
 
-## Ações Disponíveis
+## Funcionalidades
 
-Cada ação é identificada pelo campo `"action"` no JSON enviado para o WebSocket. Abaixo estão os detalhes de cada ação.
+O `TokenWebSocket` permite ao bot Discord e ao servidor Minecraft comunicarem-se através de ações específicas. Cada ação é identificada pelo campo `"action"` no JSON enviado via WebSocket, especificando qual operação deve ser executada. Abaixo estão os detalhes e exemplos de uso para cada uma das ações disponíveis.
 
 ---
 
 ### 1. `registerToken`
 
-**Descrição**: Registra um token para vincular uma conta do Discord a um jogador do Minecraft. Essa ação deve ser chamada pelo bot quando um novo token é criado para um jogador.
+**Descrição**: Registra um token que vincula uma conta do Discord a um jogador no Minecraft. Esta ação é chamada pelo bot quando um novo token é criado para um jogador, associando a conta do Discord à conta do Minecraft.
 
-#### Requisição Exemplo:
+**Requisição Exemplo (do Bot para o Plugin)**:
 
 ```json
 {
@@ -24,15 +24,15 @@ Cada ação é identificada pelo campo `"action"` no JSON enviado para o WebSock
 }
 ```
 
-**Quando Usar**: Sempre que um novo token é criado para vinculação entre o Discord e o Minecraft.
+**Quando Usar**: Sempre que um novo token de vinculação é criado para conectar uma conta do Discord a uma conta Minecraft.
 
 ---
 
 ### 2. `syncRoles`
 
-**Descrição**: Sincroniza os cargos de um jogador no Minecraft com o bot no Discord. O bot pode chamar essa ação para atualizar os cargos de um jogador no Discord com base nas permissões dele no Minecraft.
+**Descrição**: Sincroniza os cargos de um jogador no Minecraft com o bot Discord. O bot chama esta ação para atualizar os cargos de um jogador no Discord com base em suas permissões no Minecraft.
 
-#### Requisição Exemplo:
+**Requisição Exemplo (do Bot para o Plugin)**:
 
 ```json
 {
@@ -41,7 +41,7 @@ Cada ação é identificada pelo campo `"action"` no JSON enviado para o WebSock
 }
 ```
 
-#### Resposta Exemplo (do Servidor para o Bot):
+**Resposta Exemplo (do Plugin para o Bot)**:
 
 ```json
 {
@@ -54,15 +54,15 @@ Cada ação é identificada pelo campo `"action"` no JSON enviado para o WebSock
 }
 ```
 
-**Quando Usar**: Sempre que for necessário sincronizar os cargos de um jogador no Minecraft com os cargos no Discord.
+**Quando Usar**: Sempre que for necessário sincronizar os cargos de um jogador no Minecraft com seus cargos no Discord.
 
 ---
 
 ### 3. `getPlayerInfo`
 
-**Descrição**: Retorna o `UUID` e o `nickname` atual de um jogador no Minecraft a partir do cache. Útil para o bot garantir que está usando o nickname mais recente do jogador.
+**Descrição**: Retorna o `UUID` e o nickname atual de um jogador no Minecraft usando o cache. Essa ação permite que o bot garanta o uso do nickname mais atualizado de um jogador.
 
-#### Requisição Exemplo:
+**Requisição Exemplo (do Bot para o Plugin)**:
 
 ```json
 {
@@ -71,7 +71,7 @@ Cada ação é identificada pelo campo `"action"` no JSON enviado para o WebSock
 }
 ```
 
-#### Resposta Exemplo (do Servidor para o Bot):
+**Resposta Exemplo (do Plugin para o Bot)**:
 
 ```json
 {
@@ -81,38 +81,79 @@ Cada ação é identificada pelo campo `"action"` no JSON enviado para o WebSock
 }
 ```
 
-**Quando Usar**: Quando o bot precisar obter informações atualizadas de um jogador específico.
+**Quando Usar**: Sempre que o bot precisar obter as informações atualizadas de um jogador específico.
 
 ---
 
 ### 4. `updatePlayerNickname`
 
-**Descrição**: Atualiza o cache com o nickname do jogador. Esse método é chamado automaticamente pelo servidor quando um jogador entra no Minecraft para garantir que o cache contenha o nickname mais recente.
+**Descrição**: Atualiza o cache com o nickname do jogador no Minecraft. Esta ação é chamada automaticamente pelo servidor Minecraft quando um jogador entra no servidor, garantindo que o cache tenha o nickname mais recente.
 
 **Parâmetros**:
 
 - `uuid`: UUID do jogador.
 - `nickname`: Nickname atual do jogador no Minecraft.
 
-**Observação**: Esta função é chamada pelo servidor internamente quando o jogador entra no Minecraft, portanto, o bot não precisa chamá-la diretamente.
+**Observação**: Essa ação é chamada internamente pelo servidor quando o jogador entra, então o bot não precisa requisitá-la diretamente.
 
 ---
 
-## Resumo das Ações
+### 5. `sendDirectMessage`
 
-| Ação            | Quando Chamar                        | Requisição Exemplo                                      |
-|-----------------|-------------------------------------|--------------------------------------------------------|
-| `registerToken` | Quando um novo token é criado       | Veja o exemplo acima em **registerToken**              |
-| `syncRoles`     | Para sincronizar cargos do jogador  | Veja o exemplo acima em **syncRoles**                  |
-| `getPlayerInfo` | Para obter informações de um jogador| Veja o exemplo acima em **getPlayerInfo**              |
-| `updatePlayerNickname` | Atualização automática ao entrar no servidor | Chamada internamente pelo servidor                     |
+**Descrição**: Envia uma mensagem direta para um usuário do Discord. Esta ação é utilizada pelo plugin para comunicar informações importantes diretamente ao usuário no Discord, como confirmações de vinculação.
+
+**Requisição Exemplo (do Plugin para o Bot)**:
+
+```json
+{
+  "action": "sendDirectMessage",
+  "discordId": "123456789012345678",
+  "message": "Sua conta foi vinculada com sucesso!"
+}
+```
+
+**Quando Usar**: Sempre que o plugin precisar enviar uma notificação direta a um usuário do Discord.
 
 ---
 
-## Contribuição
+### 6. `chatMessage`
 
-Para contribuir com o projeto ou sugerir melhorias, faça um *fork* e envie uma *pull request* com suas modificações.
+**Descrição**: Transmite uma mensagem do chat do jogador para o bot, que deve redirecioná-la ao canal apropriado no Discord. Isso permite integração de chat em tempo real entre Minecraft e Discord.
+
+**Requisição Exemplo (do Plugin para o Bot)**:
+
+```json
+{
+  "action": "chatMessage",
+  "skin": "PlayerSkin",
+  "player": "PlayerName",
+  "message": "Olá, mundo!",
+  "world": "world_nether",
+  "server": "MinecraftServer"
+}
+```
+
+**Quando Usar**: Sempre que uma mensagem no Minecraft precisa ser exibida em um canal de chat no Discord.
 
 ---
 
-Este `README.md` fornece uma documentação completa das ações do WebSocket para o bot de integração com o servidor Minecraft, com exemplos claros de como utilizá-las.
+## Sumário das Ações
+
+| Ação                | Descrição                                                                                                 | Exemplo de Requisição                         |
+|---------------------|-----------------------------------------------------------------------------------------------------------|-----------------------------------------------|
+| `registerToken`     | Vincula uma conta Discord a uma conta Minecraft.                                                          | Veja o exemplo em **registerToken**           |
+| `syncRoles`         | Sincroniza cargos do jogador entre Minecraft e Discord.                                                   | Veja o exemplo em **syncRoles**               |
+| `getPlayerInfo`     | Obtém informações de um jogador (UUID e nickname).                                                        | Veja o exemplo em **getPlayerInfo**           |
+| `updatePlayerNickname` | Atualiza o cache de nickname de um jogador. Chamada automaticamente pelo servidor Minecraft.             | N/A                                           |
+| `sendDirectMessage` | Envia uma mensagem direta a um usuário do Discord.                                                        | Veja o exemplo em **sendDirectMessage**       |
+| `chatMessage`       | Transmite uma mensagem do jogador no Minecraft para o Discord.                                           | Veja o exemplo em **chatMessage**             |
+
+---
+
+## Como Contribuir
+
+Se você deseja contribuir com este projeto, faça um *fork* do repositório, crie uma nova *branch* com suas modificações e envie uma *pull request* para revisão. Antes de enviar sua contribuição, verifique se o código está documentado e se atende aos padrões de qualidade do projeto.
+
+---
+
+Este documento fornece uma visão geral das ações WebSocket para integração entre o servidor Minecraft e o bot Discord, facilitando a comunicação e sincronização de dados entre as duas plataformas.
