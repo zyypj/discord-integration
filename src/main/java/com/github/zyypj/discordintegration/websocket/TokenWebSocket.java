@@ -93,11 +93,32 @@ public class TokenWebSocket extends WebSocketServer {
             case "getPlayerInfo":
                 handleGetPlayerInfo(json, webSocket);
                 break;
+            case "getPlayerUUID":
+                if (json.has("playerName")) {
+                    String playerName = json.get("playerName").getAsString();
+                    UUID playerUUID = getUUIDFromPlayerName(playerName);
+
+                    JsonObject uuidResponse = new JsonObject();
+                    uuidResponse.addProperty("action", "getPlayerUUID");
+                    uuidResponse.addProperty("playerName", playerName);
+                    if (playerUUID != null) {
+                        uuidResponse.addProperty("uuid", playerUUID.toString());
+                    } else {
+                        uuidResponse.addProperty("error", "Jogador não encontrado.");
+                    }
+                    webSocket.send(uuidResponse.toString());
+                } else {
+                    JsonObject errorResponse = new JsonObject();
+                    errorResponse.addProperty("error", "Parâmetro 'playerName' ausente.");
+                    webSocket.send(errorResponse.toString());
+                }
+                break;
             default:
                 JsonObject response = new JsonObject();
                 response.addProperty("registerToken", "Registra um token");
                 response.addProperty("syncRoles", "Recarrega os ID dos cargos");
                 response.addProperty("getPlayerInfo", "Retorna informações do jogador");
+                response.addProperty("getPlayerUUID", "Retorna o UUID de um jogador pelo nome");
 
                 webSocket.send(response.toString());
         }
@@ -158,6 +179,16 @@ public class TokenWebSocket extends WebSocketServer {
         // Adiciona os cargos ao JSON de resposta e envia ao WebSocket
         response.add("roles", rolesJson);
         webSocket.send(response.toString());
+    }
+
+    public UUID getUUIDFromPlayerName(String playerName) {
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        if (offlinePlayer != null && offlinePlayer.hasPlayedBefore()) {
+            return offlinePlayer.getUniqueId();
+        } else {
+            plugin.getLogger().warning("Jogador não encontrado: " + playerName);
+            return null;
+        }
     }
 
     private void handleGetPlayerInfo(JsonObject json, WebSocket webSocket) {
