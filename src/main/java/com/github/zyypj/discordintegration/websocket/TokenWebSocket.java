@@ -4,7 +4,11 @@ import com.github.zyypj.discordintegration.TokenPlugin;
 import com.github.zyypj.discordintegration.manager.TokenManager;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.aurelium.auraskills.api.AuraSkillsApi;
+import dev.aurelium.auraskills.api.skill.Skills;
+import dev.aurelium.auraskills.api.user.SkillsUser;
 import lombok.Getter;
+import me.qKing12.RoyaleEconomy.API.Balance;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.query.QueryOptions;
@@ -28,14 +32,21 @@ import java.util.stream.Collectors;
 @Getter
 public class TokenWebSocket extends WebSocketServer {
 
+    private final String apiToken;
+
     private final TokenManager tokenManager;
     private final TokenPlugin plugin;
     private final Map<UUID, String> playerNicknameCache = new ConcurrentHashMap<>();
+
+    AuraSkillsApi auraSkills = AuraSkillsApi.get();
 
     public TokenWebSocket(TokenPlugin plugin, String websocketUrl) {
         super(parseWebSocketURI(websocketUrl));
         this.plugin = plugin;
         this.tokenManager = plugin.getTokenManager();
+
+        FileConfiguration config = plugin.getConfig();
+        this.apiToken = config.getString("websocket.apiToken");
     }
 
     private static InetSocketAddress parseWebSocketURI(String websocketUrl) {
@@ -60,6 +71,16 @@ public class TokenWebSocket extends WebSocketServer {
     @Override
     public void onMessage(WebSocket webSocket, String message) {
         JsonObject json = new JsonParser().parse(message).getAsJsonObject();
+
+        // Verifica o token de acesso
+        if (!json.has("apiToken") || !json.get("apiToken").getAsString().equals(apiToken)) {
+            JsonObject errorResponse = new JsonObject();
+            errorResponse.addProperty("error", "Acesso negado: Token inválido ou ausente.");
+            webSocket.send(errorResponse.toString());
+            plugin.getLogger().warning("Tentativa de acesso com token inválido ou ausente de: " + webSocket.getRemoteSocketAddress());
+            return;
+        }
+
         String action = json.get("action").getAsString();
 
         switch (action) {
@@ -140,39 +161,59 @@ public class TokenWebSocket extends WebSocketServer {
     }
 
     private void handleGetPlayerInfo(JsonObject json, WebSocket webSocket) {
-        String uuidString = json.get("uuid").getAsString();
-        UUID uuid = UUID.fromString(uuidString);
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+        // Obter o nome do jogador a partir do JSON
+        String playerName = json.get("playerName").getAsString();
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+
+        if (offlinePlayer == null) {
+            JsonObject errorResponse = new JsonObject();
+            errorResponse.addProperty("error", "Jogador não encontrado: " + playerName);
+            webSocket.send(errorResponse.toString());
+            plugin.getLogger().warning("Tentativa de acesso para jogador não encontrado: " + playerName);
+            return;
+        }
+
         boolean isOnline = offlinePlayer.isOnline();
-        Player player = isOnline ? Bukkit.getPlayer(uuid) : null;
+        Player player = isOnline ? Bukkit.getPlayer(offlinePlayer.getUniqueId()) : null;
 
         JsonObject playerInfo = new JsonObject();
 
-        // Nickname
+        // Adicionar informações básicas
         playerInfo.addProperty("nickname", offlinePlayer.getName());
-
-        // UUID
         playerInfo.addProperty("uuid", offlinePlayer.getUniqueId().toString());
 
-        // Primeira vez que entrou no servidor
         long firstJoinTime = offlinePlayer.getFirstPlayed();
         String firstJoinDate = firstJoinTime > 0 ? new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new java.util.Date(firstJoinTime)) : "Desconhecido";
         playerInfo.addProperty("firstJoinDate", firstJoinDate);
-
-        // Skin (exibido como nickname, pois é o identificador no Minecraft)
-        playerInfo.addProperty("skin", offlinePlayer.getName());
-
-        // Verificação de jogador premium (original ou pirata)
-        boolean isPremium = offlinePlayer.hasPlayedBefore();
-        playerInfo.addProperty("isPremium", isPremium);
-
-        // Status online
+        playerInfo.addProperty("isPremium", offlinePlayer.hasPlayedBefore());
         playerInfo.addProperty("isOnline", isOnline);
 
-        // Adiciona informações extras se o jogador estiver online
         if (isOnline && player != null) {
             playerInfo.addProperty("world", player.getWorld().getName());
             playerInfo.addProperty("server", Bukkit.getServer().getName());
+        }
+
+        // Obter o saldo do jogador usando a API RoyaleEconomy
+        Balance balanceAPI = new Balance();
+        double moneyBalance = balanceAPI.getBalance(offlinePlayer.getName());
+        playerInfo.addProperty("balance", moneyBalance);
+
+        // Obter habilidades e mana usando a API AuraSkills
+        if (player != null) {
+            SkillsUser user = auraSkills.getUser(player.getUniqueId());
+            if (user != null) {
+                int farmingLevel = user.getSkillLevel(Skills.FARMING);
+                double farmingXp = user.getSkillXp(Skills.FARMING);
+                playerInfo.addProperty("farmingLevel", farmingLevel);
+                playerInfo.addProperty("farmingXp", farmingXp);
+
+                double currentMana = user.getMana();
+                double maxMana = user.getMaxMana();
+                playerInfo.addProperty("currentMana", currentMana);
+                playerInfo.addProperty("maxMana", maxMana);
+            } else {
+                plugin.getLogger().warning("Usuário não encontrado para o nome do jogador: " + playerName);
+            }
         }
 
         // Envia as informações do jogador de volta ao WebSocket

@@ -6,7 +6,7 @@
 
   <groupId>com.github.zyypj</groupId>
   <artifactId>discord-integration</artifactId>
-  <version>0.7</version>
+  <version>1.0</version>
   <packaging>jar</packaging>
 
   <name>discord-integration</name>
@@ -93,6 +93,21 @@
             <groupId>net.luckperms</groupId>
             <artifactId>api</artifactId>
             <version>5.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>me.qKing12</groupId>
+            <artifactId>RoyaleEconomy</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>C:/Users/zyypj/Documents/IntelliJ/Comissions/Dependencies/RoyaleEconomyAPI.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>dev.aurelium</groupId>
+            <artifactId>auraskills-api-bukkit</artifactId>
+            <version>2.2.4</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

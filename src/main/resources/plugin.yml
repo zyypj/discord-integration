@@ -1,7 +1,7 @@
 name: discord-integration
 author: tadeu
 version: '${project.version}'
-depends: [ LuckPerms ]
+depends: [ LuckPerms, RoyaleEconomy, AuraSkills ]
 main: com.github.zyypj.discordintegration.TokenPlugin
 api-version: 1.8
 commands:
