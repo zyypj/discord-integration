@@ -4,7 +4,7 @@ Este documento descreve a comunicação via WebSocket entre o servidor Minecraft
 
 ## Funcionalidades
 
-O `TokenWebSocket` permite ao bot Discord e ao servidor Minecraft comunicarem-se através de ações específicas. Cada ação é identificada pelo campo `"action"` no JSON enviado via WebSocket, especificando qual operação deve ser executada. Abaixo estão os detalhes e exemplos de uso para cada uma das ações disponíveis.
+O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comuniquem através de ações específicas. Cada ação é identificada pelo campo `"action"` no JSON enviado via WebSocket, especificando qual operação deve ser executada. Abaixo estão os detalhes e exemplos de uso para cada uma das ações disponíveis.
 
 ---
 
@@ -62,7 +62,7 @@ O `TokenWebSocket` permite ao bot Discord e ao servidor Minecraft comunicarem-se
 
 ### 3. `getPlayerInfo`
 
-**Descrição**: Retorna informações detalhadas sobre o jogador, como nickname, UUID, saldo, habilidades e mana. Agora, essa ação pode ser chamada usando o nome do jogador.
+**Descrição**: Retorna informações detalhadas sobre o jogador, como nickname, UUID, saldo, habilidades e mana. Esta ação pode ser chamada usando o nome do jogador.
 
 **Requisição Exemplo (do Bot para o Plugin)**:
 
@@ -100,7 +100,35 @@ O `TokenWebSocket` permite ao bot Discord e ao servidor Minecraft comunicarem-se
 
 ---
 
-### 4. `sendDirectMessage`
+### 4. `getPlayerUUID`
+
+**Descrição**: Retorna o UUID de um jogador a partir de seu nome no Minecraft.
+
+**Requisição Exemplo (do Bot para o Plugin)**:
+
+```json
+{
+  "action": "getPlayerUUID",
+  "apiToken": "seuTokenDeAcessoAqui",
+  "playerName": "Tadeu" // Nome do jogador no Minecraft
+}
+```
+
+**Resposta Exemplo (do Plugin para o Bot)**:
+
+```json
+{
+  "action": "getPlayerUUID",
+  "playerName": "Tadeu",
+  "uuid": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Quando Usar**: Sempre que for necessário obter o UUID de um jogador a partir de seu nome no Minecraft.
+
+---
+
+### 5. `sendDirectMessage`
 
 **Descrição**: Envia uma mensagem direta para um usuário no Discord. Esta ação é utilizada pelo plugin para comunicar informações importantes diretamente ao usuário no Discord, como confirmações de vinculação.
 
@@ -119,7 +147,7 @@ O `TokenWebSocket` permite ao bot Discord e ao servidor Minecraft comunicarem-se
 
 ---
 
-### 5. `chatMessage`
+### 6. `chatMessage`
 
 **Descrição**: Transmite uma mensagem do chat do jogador para o bot, que deve redirecioná-la ao canal apropriado no Discord. Isso permite integração de chat em tempo real entre Minecraft e Discord.
 
@@ -148,6 +176,7 @@ O `TokenWebSocket` permite ao bot Discord e ao servidor Minecraft comunicarem-se
 | `registerToken`     | Vincula uma conta Discord a uma conta Minecraft.                                                          | Veja o exemplo em **registerToken**           |
 | `syncRoles`         | Sincroniza cargos do jogador entre Minecraft e Discord.                                                   | Veja o exemplo em **syncRoles**               |
 | `getPlayerInfo`     | Obtém informações detalhadas de um jogador (nickname, saldo, habilidades, mana).                          | Veja o exemplo em **getPlayerInfo**           |
+| `getPlayerUUID`     | Retorna o UUID de um jogador a partir de seu nome.                                                        | Veja o exemplo em **getPlayerUUID**           |
 | `sendDirectMessage` | Envia uma mensagem direta a um usuário do Discord.                                                        | Veja o exemplo em **sendDirectMessage**       |
 | `chatMessage`       | Transmite uma mensagem do jogador no Minecraft para o Discord.                                           | Veja o exemplo em **chatMessage**             |
 
