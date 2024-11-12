@@ -10,9 +10,11 @@ import lombok.Getter;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.group.Group;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -27,6 +29,7 @@ public class TokenPlugin extends JavaPlugin {
     private TokenWebSocket tokenWebSocket;
     private LuckPerms luckPerms;
     private FileConfiguration rolesConfig;
+    private Economy econ;
 
     @Override
     public void onEnable() {
@@ -45,6 +48,8 @@ public class TokenPlugin extends JavaPlugin {
         this.luckPerms = LuckPermsProvider.get();
 
         loadRolesConfig();
+
+        setupEconomy();
 
         long endTime = System.currentTimeMillis() - startTime;
         log(" ");
@@ -145,7 +150,19 @@ public class TokenPlugin extends JavaPlugin {
         }
     }
 
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return true;
+    }
+
     private void log(String message) {
-        getLogger().info(message.replace("&", "§"));
+        Bukkit.getConsoleSender().sendMessage(message.replace("&", "§"));
     }
 }

@@ -4,11 +4,7 @@ import com.github.zyypj.discordintegration.TokenPlugin;
 import com.github.zyypj.discordintegration.manager.TokenManager;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import dev.aurelium.auraskills.api.AuraSkillsApi;
-import dev.aurelium.auraskills.api.skill.Skills;
-import dev.aurelium.auraskills.api.user.SkillsUser;
 import lombok.Getter;
-import me.qKing12.RoyaleEconomy.API.Balance;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.query.QueryOptions;
@@ -37,8 +33,7 @@ public class TokenWebSocket extends WebSocketServer {
     private final TokenManager tokenManager;
     private final TokenPlugin plugin;
     private final Map<UUID, String> playerNicknameCache = new ConcurrentHashMap<>();
-
-    AuraSkillsApi auraSkills = AuraSkillsApi.get();
+    private final boolean vaultEnabled;
 
     public TokenWebSocket(TokenPlugin plugin, String websocketUrl) {
         super(parseWebSocketURI(websocketUrl));
@@ -47,6 +42,8 @@ public class TokenWebSocket extends WebSocketServer {
 
         FileConfiguration config = plugin.getConfig();
         this.apiToken = config.getString("websocket.apiToken");
+
+        this.vaultEnabled = Bukkit.getPluginManager().isPluginEnabled("Vault");
     }
 
     private static InetSocketAddress parseWebSocketURI(String websocketUrl) {
@@ -183,7 +180,7 @@ public class TokenWebSocket extends WebSocketServer {
 
     public UUID getUUIDFromPlayerName(String playerName) {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
-        if (offlinePlayer != null && offlinePlayer.hasPlayedBefore()) {
+        if (offlinePlayer.hasPlayedBefore()) {
             return offlinePlayer.getUniqueId();
         } else {
             plugin.getLogger().warning("Jogador não encontrado: " + playerName);
@@ -192,7 +189,6 @@ public class TokenWebSocket extends WebSocketServer {
     }
 
     private void handleGetPlayerInfo(JsonObject json, WebSocket webSocket) {
-        // Obter o nome do jogador a partir do JSON
         String playerName = json.get("playerName").getAsString();
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
 
@@ -208,8 +204,6 @@ public class TokenWebSocket extends WebSocketServer {
         Player player = isOnline ? Bukkit.getPlayer(offlinePlayer.getUniqueId()) : null;
 
         JsonObject playerInfo = new JsonObject();
-
-        // Adicionar informações básicas
         playerInfo.addProperty("nickname", offlinePlayer.getName());
         playerInfo.addProperty("uuid", offlinePlayer.getUniqueId().toString());
 
@@ -224,30 +218,12 @@ public class TokenWebSocket extends WebSocketServer {
             playerInfo.addProperty("server", Bukkit.getServer().getName());
         }
 
-        // Obter o saldo do jogador usando a API RoyaleEconomy
-        Balance balanceAPI = new Balance();
-        double moneyBalance = balanceAPI.getBalance(offlinePlayer.getName());
-        playerInfo.addProperty("balance", moneyBalance);
-
-        // Obter habilidades e mana usando a API AuraSkills
-        if (player != null) {
-            SkillsUser user = auraSkills.getUser(player.getUniqueId());
-            if (user != null) {
-                int farmingLevel = user.getSkillLevel(Skills.FARMING);
-                double farmingXp = user.getSkillXp(Skills.FARMING);
-                playerInfo.addProperty("farmingLevel", farmingLevel);
-                playerInfo.addProperty("farmingXp", farmingXp);
-
-                double currentMana = user.getMana();
-                double maxMana = user.getMaxMana();
-                playerInfo.addProperty("currentMana", currentMana);
-                playerInfo.addProperty("maxMana", maxMana);
-            } else {
-                plugin.getLogger().warning("Usuário não encontrado para o nome do jogador: " + playerName);
-            }
+        // Adiciona o saldo do jogador apenas se o Vault estiver habilitado
+        if (vaultEnabled && player != null) {
+            double moneyBalance = plugin.getEcon().getBalance(player);
+            playerInfo.addProperty("balance", moneyBalance);
         }
 
-        // Envia as informações do jogador de volta ao WebSocket
         JsonObject response = new JsonObject();
         response.addProperty("action", "playerInfo");
         response.add("playerData", playerInfo);

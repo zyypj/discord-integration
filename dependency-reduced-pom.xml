@@ -44,12 +44,16 @@
       <id>sonatype</id>
       <url>https://oss.sonatype.org/content/groups/public/</url>
     </repository>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
   </repositories>
   <dependencies>
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.8.8-R0.1-SNAPSHOT</version>
+      <version>1.21.1-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -65,17 +69,11 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>dev.aurelium</groupId>
-      <artifactId>auraskills-api-bukkit</artifactId>
-      <version>2.2.4</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>me.qKing12</groupId>
-      <artifactId>RoyaleEconomy</artifactId>
-      <version>1.0</version>
+      <groupId>com.github.MilkBowl</groupId>
+      <artifactId>Vault</artifactId>
+      <version>1.7</version>
       <scope>system</scope>
-      <systemPath>C:/Users/zyypj/Documents/IntelliJ/Comissions/Dependencies/RoyaleEconomyAPI.jar</systemPath>
+      <systemPath>C:/Users/zyypj/Documents/IntelliJ/Comissions/Dependencies/Vault.jar</systemPath>
     </dependency>
   </dependencies>
   <properties>

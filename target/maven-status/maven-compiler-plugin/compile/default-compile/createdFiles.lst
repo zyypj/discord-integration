@@ -1,7 +1,0 @@
-com\github\zyypj\discordintegration\websocket\TokenWebSocket.class
-com\github\zyypj\discordintegration\messages\MessageManager.class
-com\github\zyypj\discordintegration\listeners\ChatListener.class
-com\github\zyypj\discordintegration\listeners\PlayerJoinListener.class
-com\github\zyypj\discordintegration\TokenPlugin.class
-com\github\zyypj\discordintegration\commands\LinkCommand.class
-com\github\zyypj\discordintegration\manager\TokenManager.class
