@@ -1,16 +1,16 @@
 # Discord Integration - WebSocket Documentation
 
-Este documento descreve a comunicação via WebSocket entre o servidor Minecraft e o bot Discord, implementada no `TokenWebSocket`. Este sistema facilita a integração entre as contas de jogadores no Minecraft e seus perfis no Discord, permitindo a sincronização de cargos, envio de mensagens diretas e atualização de informações dos jogadores.
+Este documento descreve a comunicação via WebSocket entre o servidor Minecraft e o bot Discord, implementada na classe `TokenWebSocket`. Este sistema facilita a integração de contas de jogadores no Minecraft com seus perfis no Discord, permitindo a sincronização de cargos, envio de mensagens diretas, verificação de registro e atualização de informações dos jogadores.
 
 ## Funcionalidades
 
-O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comuniquem através de ações específicas. Cada ação é identificada pelo campo `"action"` no JSON enviado via WebSocket, especificando qual operação deve ser executada. Abaixo estão os detalhes e exemplos de uso para cada uma das ações disponíveis.
+O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comuniquem através de várias ações. Cada ação é identificada pelo campo `"action"` no JSON enviado via WebSocket, especificando qual operação deve ser executada. Abaixo estão os detalhes e exemplos de uso para cada ação disponível.
 
 ---
 
 ### 1. `registerToken`
 
-**Descrição**: Registra um token que vincula uma conta do Discord a um jogador no Minecraft. Esta ação é chamada pelo bot quando um novo token é criado para um jogador, associando a conta do Discord à conta do Minecraft.
+**Descrição**: Registra um token que vincula uma conta do Discord a um jogador no Minecraft. Esta ação é chamada pelo bot quando um novo token é criado, associando a conta do Discord ao jogador no Minecraft.
 
 **Requisição Exemplo (do Bot para o Plugin)**:
 
@@ -18,14 +18,14 @@ O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comunique
 {
   "action": "registerToken",
   "apiToken": "seuTokenDeAcessoAqui",
-  "token": "abc123xyz",       // Token gerado pelo bot
-  "id": "123456789012345678", // Discord ID do usuário
-  "name": "DiscordUser",      // Nome de usuário no Discord
-  "nick": "DiscordNick"       // Apelido do usuário no Discord, se tiver
+  "token": "abc123xyz",
+  "id": "123456789012345678",
+  "name": "DiscordUser",
+  "nick": "DiscordNick"
 }
 ```
 
-**Quando Usar**: Sempre que um novo token de vinculação é criado para conectar uma conta do Discord a uma conta Minecraft.
+**Quando Usar**: Sempre que um novo token de vinculação é criado para conectar uma conta Discord a uma conta Minecraft.
 
 ---
 
@@ -39,7 +39,7 @@ O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comunique
 {
   "action": "syncRoles",
   "apiToken": "seuTokenDeAcessoAqui",
-  "uuid": "550e8400-e29b-41d4-a716-446655440000" // UUID do jogador no Minecraft
+  "uuid": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
@@ -50,8 +50,8 @@ O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comunique
   "action": "playerRoles",
   "uuid": "550e8400-e29b-41d4-a716-446655440000",
   "roles": {
-    "admin": "123456789012345678",     // ID do cargo no Discord para 'admin'
-    "member": "987654321098765432"     // ID do cargo no Discord para 'member'
+    "admin": "123456789012345678",
+    "member": "987654321098765432"
   }
 }
 ```
@@ -62,7 +62,7 @@ O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comunique
 
 ### 3. `getPlayerInfo`
 
-**Descrição**: Retorna informações detalhadas sobre o jogador, como nickname, UUID, saldo, habilidades e mana. Esta ação pode ser chamada usando o nome do jogador.
+**Descrição**: Retorna informações detalhadas sobre o jogador, como nickname, UUID, saldo e status online. Esta ação pode ser chamada usando o nome do jogador.
 
 **Requisição Exemplo (do Bot para o Plugin)**:
 
@@ -70,7 +70,7 @@ O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comunique
 {
   "action": "getPlayerInfo",
   "apiToken": "seuTokenDeAcessoAqui",
-  "playerName": "Tadeu" // Nome do jogador no Minecraft
+  "playerName": "Tadeu"
 }
 ```
 
@@ -87,11 +87,7 @@ O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comunique
     "isOnline": true,
     "world": "world_nether",
     "server": "MinecraftServer",
-    "balance": 2500.75,
-    "farmingLevel": 5,
-    "farmingXp": 125.0,
-    "currentMana": 50.0,
-    "maxMana": 100.0
+    "balance": 2500.75
   }
 }
 ```
@@ -110,7 +106,7 @@ O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comunique
 {
   "action": "getPlayerUUID",
   "apiToken": "seuTokenDeAcessoAqui",
-  "playerName": "Tadeu" // Nome do jogador no Minecraft
+  "playerName": "Tadeu"
 }
 ```
 
@@ -128,9 +124,37 @@ O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comunique
 
 ---
 
-### 5. `sendDirectMessage`
+### 5. `checkPlayerRegistration`
 
-**Descrição**: Envia uma mensagem direta para um usuário no Discord. Esta ação é utilizada pelo plugin para comunicar informações importantes diretamente ao usuário no Discord, como confirmações de vinculação.
+**Descrição**: Verifica se o jogador especificado está registrado no sistema. O plugin solicita a informação, e o bot responde com o status de registro.
+
+**Requisição Exemplo (do Plugin para o Bot)**:
+
+```json
+{
+  "action": "checkPlayerRegistration",
+  "apiToken": "seuTokenDeAcessoAqui",
+  "uuid": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Resposta Exemplo (do Bot para o Plugin)**:
+
+```json
+{
+  "action": "playerRegistrationStatus",
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "registered": true
+}
+```
+
+**Quando Usar**: Sempre que o plugin precisar verificar se um jogador específico está registrado.
+
+---
+
+### 6. `sendDirectMessage`
+
+**Descrição**: Envia uma mensagem direta para um usuário no Discord. Esta ação é usada pelo plugin para comunicar informações diretamente ao usuário no Discord.
 
 **Requisição Exemplo (do Plugin para o Bot)**:
 
@@ -147,9 +171,9 @@ O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comunique
 
 ---
 
-### 6. `chatMessage`
+### 7. `chatMessage`
 
-**Descrição**: Transmite uma mensagem do chat do jogador para o bot, que deve redirecioná-la ao canal apropriado no Discord. Isso permite integração de chat em tempo real entre Minecraft e Discord.
+**Descrição**: Transmite uma mensagem do chat do jogador para o bot, que deve redirecioná-la ao canal apropriado no Discord.
 
 **Requisição Exemplo (do Plugin para o Bot)**:
 
@@ -171,14 +195,15 @@ O `TokenWebSocket` permite que o bot Discord e o servidor Minecraft se comunique
 
 ## Sumário das Ações
 
-| Ação                | Descrição                                                                                                 | Exemplo de Requisição                         |
-|---------------------|-----------------------------------------------------------------------------------------------------------|-----------------------------------------------|
-| `registerToken`     | Vincula uma conta Discord a uma conta Minecraft.                                                          | Veja o exemplo em **registerToken**           |
-| `syncRoles`         | Sincroniza cargos do jogador entre Minecraft e Discord.                                                   | Veja o exemplo em **syncRoles**               |
-| `getPlayerInfo`     | Obtém informações detalhadas de um jogador (nickname, saldo, habilidades, mana).                          | Veja o exemplo em **getPlayerInfo**           |
-| `getPlayerUUID`     | Retorna o UUID de um jogador a partir de seu nome.                                                        | Veja o exemplo em **getPlayerUUID**           |
-| `sendDirectMessage` | Envia uma mensagem direta a um usuário do Discord.                                                        | Veja o exemplo em **sendDirectMessage**       |
-| `chatMessage`       | Transmite uma mensagem do jogador no Minecraft para o Discord.                                           | Veja o exemplo em **chatMessage**             |
+| Ação                   | Descrição                                                                                                 | Exemplo de Requisição                         |
+|------------------------|-----------------------------------------------------------------------------------------------------------|-----------------------------------------------|
+| `registerToken`        | Vincula uma conta Discord a uma conta Minecraft.                                                          | Veja o exemplo em **registerToken**           |
+| `syncRoles`            | Sincroniza cargos do jogador entre Minecraft e Discord.                                                   | Veja o exemplo em **syncRoles**               |
+| `getPlayerInfo`        | Obtém informações detalhadas de um jogador (nickname, saldo, etc.).                                       | Veja o exemplo em **getPlayerInfo**           |
+| `getPlayerUUID`        | Retorna o UUID de um jogador a partir de seu nome.                                                        | Veja o exemplo em **getPlayerUUID**           |
+| `checkPlayerRegistration` | Verifica se o jogador está registrado no sistema.                                                      | Veja o exemplo em **checkPlayerRegistration** |
+| `sendDirectMessage`    | Envia uma mensagem direta a um usuário do Discord.                                                        | Veja o exemplo em **sendDirectMessage**       |
+| `chatMessage`          | Transmite uma mensagem do jogador no Minecraft para o Discord.                                           | Veja o exemplo em **chatMessage**             |
 
 ---
 
@@ -202,15 +227,15 @@ const socket = new WebSocket("ws://localhost:SUA_PORTA_WEBSOCKET");
 socket.onopen = () => {
   console.log("Conexão WebSocket estabelecida com sucesso.");
 
-  // Exemplo de requisição para obter informações detalhadas de um jogador
-  const getPlayerInfoRequest = {
-    action: "getPlayerInfo",
-    apiToken: "SEU_TOKEN_DE_ACESSO", // Substitua pelo seu token de acesso
-    playerName: "Tadeu"              // Nome do jogador no Minecraft
+  // Exemplo de requisição para verificar o registro do jogador
+  const checkRegistrationRequest = {
+    action: "checkPlayerRegistration",
+    apiToken: "SEU_TOKEN_DE_ACESSO",
+    uuid: "550e8400-e29b-41d4-a716-446655440000"
   };
 
   // Envia a requisição ao servidor
-  socket.send(JSON.stringify(getPlayerInfoRequest));
+  socket.send(JSON.stringify(checkRegistrationRequest));
 };
 
 // Evento para tratar respostas do servidor
@@ -219,13 +244,11 @@ socket.onmessage = (event) => {
 
   console.log("Resposta recebida do servidor:", response); // Exibe a resposta no console
 
-  // Exemplo de manipulação dos dados recebidos
-  if (response.action === "playerInfo") {
-    const playerData = response.playerData;
-    console.log(`Nickname: ${playerData.nickname}`);
-    console.log(`UUID: ${playerData.uuid}`);
-    console.log(`Saldo: ${playerData.balance}`);
-    console.log(`Habilidades - Farming Level: ${playerData.farmingLevel}`);
+  //
+
+ Exemplo de manipulação dos dados recebidos
+  if (response.action === "playerRegistrationStatus") {
+    console.log(`Jogador registrado: ${response.registered}`);
   }
 };
 
@@ -238,28 +261,6 @@ socket.onclose = () => {
 socket.onerror = (error) => {
   console.error("Erro no WebSocket:", error);
 };
-```
-
-#### Explicação do Exemplo
-
-1. **Conexão e Requisição**: Após estabelecer a conexão, o código envia uma solicitação `getPlayerInfo` para recuperar informações detalhadas sobre o jogador `"Tadeu"` usando o `apiToken`.
-2. **Recebendo a Resposta**: O código exibe a resposta recebida no console, permitindo o uso dos dados retornados pelo servidor, como nickname, UUID e saldo do jogador.
-3. **Tratamento de Conexão e Erros**: Os eventos `onclose` e `onerror` monitoram o status da conexão e tratam possíveis problemas de conexão.
-
-#### Exemplo de Requisição para Obter o UUID pelo Nome do Jogador
-
-Para obter o UUID do jogador pelo nome, basta enviar a seguinte requisição:
-
-```javascript
-// Exemplo de requisição para obter o UUID de um jogador pelo nome
-const getPlayerUUIDRequest = {
-  action: "getPlayerUUID",
-  apiToken: "SEU_TOKEN_DE_ACESSO", // Substitua pelo seu token de acesso
-  playerName: "Tadeu"              // Nome do jogador no Minecraft
-};
-
-// Envia a requisição ao servidor
-socket.send(JSON.stringify(getPlayerUUIDRequest));
 ```
 
 Esse exemplo mostra como interagir com o `TokenWebSocket`, permitindo que o bot Discord e o servidor Minecraft troquem informações e atualizem dados de forma eficiente usando o WebSocket.
