@@ -40,14 +40,20 @@ public class TokenPlugin extends JavaPlugin {
 
         saveDefaultConfig();
 
+        boolean linkSystemEnabled = getConfig().getBoolean("systems.link", true);
+
         loadManagers();
         startWebSocket();
-        registerCommands();
+        if (linkSystemEnabled) {
+            registerCommands();
+        }
         registerListeners();
 
         this.luckPerms = LuckPermsProvider.get();
 
-        loadRolesConfig();
+        if (linkSystemEnabled) {
+            loadRolesConfig();
+        }
 
         setupEconomy();
 

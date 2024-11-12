@@ -34,6 +34,7 @@ public class TokenWebSocket extends WebSocketServer {
     private final TokenPlugin plugin;
     private final Map<UUID, String> playerNicknameCache = new ConcurrentHashMap<>();
     private final boolean vaultEnabled;
+    private final boolean linkSystemEnabled;
 
     public TokenWebSocket(TokenPlugin plugin, String websocketUrl) {
         super(parseWebSocketURI(websocketUrl));
@@ -44,6 +45,7 @@ public class TokenWebSocket extends WebSocketServer {
         this.apiToken = config.getString("websocket.apiToken");
 
         this.vaultEnabled = Bukkit.getPluginManager().isPluginEnabled("Vault");
+        this.linkSystemEnabled = config.getBoolean("systems.link", true);
     }
 
     private static InetSocketAddress parseWebSocketURI(String websocketUrl) {
@@ -82,10 +84,18 @@ public class TokenWebSocket extends WebSocketServer {
 
         switch (action) {
             case "registerToken":
-                handleRegisterToken(json);
+                if (linkSystemEnabled) {
+                    handleRegisterToken(json);
+                } else {
+                    sendErrorResponse(webSocket, "Sistema de link está desativado.");
+                }
                 break;
             case "syncRoles":
-                handleSyncRoles(json, webSocket);
+                if (linkSystemEnabled) {
+                    handleSyncRoles(json, webSocket);
+                } else {
+                    sendErrorResponse(webSocket, "Sistema de link está desativado.");
+                }
                 break;
             case "getPlayerInfo":
                 handleGetPlayerInfo(json, webSocket);
@@ -258,6 +268,12 @@ public class TokenWebSocket extends WebSocketServer {
         for (WebSocket conn : getConnections()) {
             conn.send(chatMessage.toString());
         }
+    }
+
+    private void sendErrorResponse(WebSocket webSocket, String errorMessage) {
+        JsonObject errorResponse = new JsonObject();
+        errorResponse.addProperty("error", errorMessage);
+        webSocket.send(errorResponse.toString());
     }
 
     /**

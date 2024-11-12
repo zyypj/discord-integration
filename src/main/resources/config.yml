@@ -7,3 +7,6 @@
 websocket:
   url: "ws://localhost:8080"
   apiToken: "67D1c192"
+
+systems:
+  link: true
